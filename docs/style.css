@@ -416,6 +416,19 @@ select:focus {
   letter-spacing: -0.03em;
 }
 
+/* new subheader for Romania block */
+.result-card h4.aftertax-title {
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .result-flex {
   display: flex;
   flex-wrap: wrap;
