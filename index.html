@@ -10,7 +10,6 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon.png" />
     <link rel="apple-touch-icon" href="favicon.png" />
     <meta name="theme-color" content="#0a0f1f" />
-
 </head>
 
 <body>
@@ -115,7 +114,6 @@
                             </div>
                         </label>
                     </div>
-
                 </div>
 
                 <!-- CALC FORM -->
@@ -253,7 +251,39 @@
 
                     <div class="tiny-hint">
                         "Arbitrage Check" uses (1/oddsA + 1/oddsB). If &lt; 1 it's a surebet.
-                        All EUR numbers are converted using today's FX snapshot.
+                        All EUR numbers below are converted using today's FX snapshot.
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h4 class="aftertax-title">After Romanian retail tax model (RON bets)</h4>
+
+                    <div class="result-flex">
+                        <div class="result-col">
+                            <div class="result-row">
+                                <span class="result-label">Exposure after tax (EUR):</span>
+                                <span class="result-value" id="expTaxOut">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Guaranteed return after tax (EUR):</span>
+                                <span class="result-value" id="retTaxOut">-</span>
+                            </div>
+                        </div>
+                        <div class="result-col">
+                            <div class="result-row">
+                                <span class="result-label">Profit after tax (EUR):</span>
+                                <span class="result-value" id="profTaxOut">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">ROI after tax %:</span>
+                                <span class="result-value" id="roiTaxOut">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tiny-hint">
+                        Romania retail assumptions: 5% fee on stake cash-in and 4% withholding on payout,
+                        applied only to tickets in RON. Other currencies are left untouched.
                     </div>
                 </div>
             </section>
@@ -502,30 +532,21 @@
         function arbAnalysis(oddsA, oddsB) {
             const invSum = (1 / oddsA) + (1 / oddsB);
             const hasArb = invSum < 1;
-            theReturnFactor = 1 / invSum;
+            const theReturnFactor = 1 / invSum;
             const arbPct = (theReturnFactor - 1) * 100;
             return { hasArb, arbPct };
         }
 
         /****************************************************
          * MODE 1: I KNOW STAKE A
-         * - user inputs stakeA_native
-         * - we solve stakeB_native so that payout EUR matches
          ****************************************************/
         function solveFromStakeA(oddsA, oddsB, stakeA_native, curA, curB) {
-            // Payout if A wins, in A currency:
             const payoutA_native = stakeA_native * oddsA;
-            // Convert that payout to EUR:
             const payoutA_EUR = amountToEUR(payoutA_native, curA);
 
-            // We want B to pay out the same EUR if B wins.
-            // Convert that same EUR payout back into B currency:
             const payoutA_in_B_native = amountFromEUR(payoutA_EUR, curB);
-
-            // stakeB_native * oddsB = payoutA_in_B_native
             const stakeB_native = payoutA_in_B_native / oddsB;
 
-            // Now compute the rest using these two stakes:
             return summarizeStakes(
                 oddsA,
                 oddsB,
@@ -538,19 +559,12 @@
 
         /****************************************************
          * MODE 2: I KNOW STAKE B
-         * - user inputs stakeB_native
-         * - we solve stakeA_native symmetrically
          ****************************************************/
         function solveFromStakeB(oddsA, oddsB, stakeB_native, curA, curB) {
-            // Payout if B wins, in B currency:
             const payoutB_native = stakeB_native * oddsB;
-            // Convert to EUR:
             const payoutB_EUR = amountToEUR(payoutB_native, curB);
 
-            // Force A to pay that same EUR if A wins:
             const payoutB_in_A_native = amountFromEUR(payoutB_EUR, curA);
-
-            // stakeA_native * oddsA = payoutB_in_A_native
             const stakeA_native = payoutB_in_A_native / oddsA;
 
             return summarizeStakes(
@@ -565,9 +579,6 @@
 
         /****************************************************
          * MODE 3: TARGET EUR PAYOUT
-         * - user inputs targetPayoutEUR
-         * - solve *both* stakes so that if either side wins,
-         *   payout in EUR ≈ targetPayoutEUR
          ****************************************************/
         function solveFromTargetEUR(oddsA, oddsB, targetPayoutEUR, curA, curB) {
             if (!fxRates || !fxRates[curA] || !fxRates[curB]) {
@@ -584,17 +595,77 @@
                 stakeB_native,
                 curA,
                 curB,
-                targetPayoutEUR // we already know guaranteed EUR in this mode
+                targetPayoutEUR // guaranteed EUR known already
             );
         }
 
         /****************************************************
-         * COMMON SUMMARY:
-         * given both stakes, compute:
-         *  - payouts in EUR for A win vs B win
-         *  - exposure in EUR
-         *  - guaranteedReturnEUR = min(payoutA_EUR, payoutB_EUR)
-         *  - profit, ROI
+         * ROMANIA RETAIL ADJUSTMENT (RON only)
+         * - 5% fee on stake cash-in
+         * - 4% withholding on payout
+         * Only applies if currency === "RON"
+         ****************************************************/
+        function computeRomaniaAfterTax(
+            oddsA,
+            oddsB,
+            stakeA_native,
+            stakeB_native,
+            curA,
+            curB
+        ) {
+            // Constants for Romanian retail shop model
+            const tStake = 0.05; // 5% fee when you hand cash to place the bet
+            const tWin = 0.04;   // 4% tax on winning payout (low bracket)
+
+            // helper per side
+            function sideAfterTax(stakeEff, odds, cur) {
+                const isRON = (cur === "RON");
+
+                // stakeEff here is the "effective stake" that actually goes on the slip.
+                // If it's RON retail, the bettor actually handed in MORE cash,
+                // because house kept 5% and placed the rest.
+                const cashIn = isRON ? (stakeEff / (1 - tStake)) : stakeEff;
+
+                const grossPayout = stakeEff * odds;
+                const netPayout = isRON ? (grossPayout * (1 - tWin)) : grossPayout;
+
+                return { cashIn, netPayout };
+            }
+
+            const sideA = sideAfterTax(stakeA_native, oddsA, curA);
+            const sideB = sideAfterTax(stakeB_native, oddsB, curB);
+
+            // Exposure after tax = total real cash handed over across both sides, in EUR
+            const exposureAfterTaxEUR =
+                amountToEUR(sideA.cashIn, curA) +
+                amountToEUR(sideB.cashIn, curB);
+
+            // If A wins, only A pays you out (after tax); B is lost.
+            const payoutIfA_afterTax_EUR = amountToEUR(sideA.netPayout, curA);
+            // If B wins:
+            const payoutIfB_afterTax_EUR = amountToEUR(sideB.netPayout, curB);
+
+            const guaranteedReturnAfterTaxEUR = Math.min(
+                payoutIfA_afterTax_EUR,
+                payoutIfB_afterTax_EUR
+            );
+
+            const profitAfterTaxEUR =
+                guaranteedReturnAfterTaxEUR - exposureAfterTaxEUR;
+
+            const roiAfterTaxPct =
+                (profitAfterTaxEUR / exposureAfterTaxEUR) * 100;
+
+            return {
+                exposureAfterTaxEUR,
+                guaranteedReturnAfterTaxEUR,
+                profitAfterTaxEUR,
+                roiAfterTaxPct,
+            };
+        }
+
+        /****************************************************
+         * COMMON SUMMARY (pre-tax / base model)
          ****************************************************/
         function summarizeStakes(
             oddsA,
@@ -603,7 +674,7 @@
             stakeB_native,
             curA,
             curB,
-            overrideGuaranteedEUR // optional (used in targetEUR mode)
+            overrideGuaranteedEUR // optional
         ) {
             // native payouts
             const payoutA_native = stakeA_native * oddsA;
@@ -627,6 +698,16 @@
             const profitEUR = guaranteedReturnEUR - exposureEUR;
             const roiPct = (profitEUR / exposureEUR) * 100;
 
+            // Also compute after-tax (Romania model)
+            const roAfterTax = computeRomaniaAfterTax(
+                oddsA,
+                oddsB,
+                stakeA_native,
+                stakeB_native,
+                curA,
+                curB
+            );
+
             return {
                 stakeA_native,
                 stakeB_native,
@@ -636,6 +717,10 @@
                 guaranteedReturnEUR,
                 profitEUR,
                 roiPct,
+                roExposureEUR: roAfterTax.exposureAfterTaxEUR,
+                roGuaranteedReturnEUR: roAfterTax.guaranteedReturnAfterTaxEUR,
+                roProfitEUR: roAfterTax.profitAfterTaxEUR,
+                roRoiPct: roAfterTax.roiAfterTaxPct
             };
         }
 
@@ -730,7 +815,7 @@
             // Arbitrage check
             const { hasArb, arbPct } = arbAnalysis(oddsA, oddsB);
 
-            // Render to UI
+            // ---------- Render base (pre-tax) ----------
             setText(
                 "#stakeAOut",
                 `${calcRes.stakeA_native.toFixed(2)} ${curA} @ ${oddsA.toFixed(2)}`
@@ -756,6 +841,24 @@
             } else {
                 setText("#arbOut", `NO ARB ❌  ${arbPct.toFixed(2)}%`);
             }
+
+            // ---------- Render Romania after-tax block ----------
+            setText(
+                "#expTaxOut",
+                `${calcRes.roExposureEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#retTaxOut",
+                `${calcRes.roGuaranteedReturnEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#profTaxOut",
+                `${calcRes.roProfitEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#roiTaxOut",
+                `${calcRes.roRoiPct.toFixed(2)} %`
+            );
 
             show(resultBox);
         }
