@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Surebet Ops Console</title>
     <link rel="stylesheet" href="style.css" />
+
+    <!-- Optional favicon hook (put favicon.png in same folder) -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="favicon.png" />
     <link rel="apple-touch-icon" href="favicon.png" />
@@ -18,8 +20,9 @@
         <header class="header-card glass-card">
             <div class="header-main">
                 <h1>Arbitrage Calculator</h1>
-                <p class="tagline">2-way arbitrage sizing with live EUR FX snapshot</p>
+                <p class="tagline">2-way sizing, FX-locked, tax-aware 🇷🇴</p>
             </div>
+
             <div class="fx-fetch-block">
                 <button id="fetchRatesBtn" class="btn-primary">Fetch Rates (EUR base)</button>
                 <div class="fetch-hint">
@@ -30,15 +33,18 @@
         </header>
 
         <main class="main-col">
-            <!-- ================= FX SNAPSHOT (COMPACT) ================= -->
+
+            <!-- ================= FX SNAPSHOT CARD ================= -->
             <section class="glass-card panel panel-compact">
                 <div class="panel-head-row">
-                    <h2 class="panel-title small-gap">FX Snapshot (EUR →)</h2>
+                    <h2 class="panel-title small-gap">
+                        FX Snapshot (EUR →)
+                    </h2>
                     <div id="fxTimestamp" class="fx-timestamp tiny-ts">No rates loaded</div>
                 </div>
 
                 <div id="fxTable" class="fx-table fx-table-inline">
-                    <!-- Populated by JS -->
+                    <!-- populated by JS -->
                 </div>
 
                 <details class="manual-wrapper">
@@ -48,17 +54,19 @@
                     </summary>
 
                     <div class="inline-manual">
-                        <div class="manual-row tight-row">
+                        <div class="manual-row">
                             <label for="manualGBP">1€ =</label>
                             <input type="number" step="0.0001" id="manualGBP" placeholder="GBP" />
                             <span class="manual-cur">GBP</span>
                         </div>
-                        <div class="manual-row tight-row">
+
+                        <div class="manual-row">
                             <label for="manualRON">1€ =</label>
                             <input type="number" step="0.0001" id="manualRON" placeholder="RON" />
                             <span class="manual-cur">RON</span>
                         </div>
-                        <div class="manual-row tight-row">
+
+                        <div class="manual-row">
                             <label for="manualAUD">1€ =</label>
                             <input type="number" step="0.0001" id="manualAUD" placeholder="AUD" />
                             <span class="manual-cur">AUD</span>
@@ -73,9 +81,9 @@
                 </details>
             </section>
 
-            <!-- ================= ARBITRAGE CALCULATOR ================= -->
+            <!-- ================= CALCULATOR CARD ================= -->
             <section class="glass-card panel">
-                <h2 class="panel-title">Arbitrage Calculator (2 outcomes)</h2>
+                <h2 class="panel-title">Surebet Sizing</h2>
 
                 <!-- MODE TOGGLE -->
                 <div class="note-box mode-box">
@@ -85,7 +93,7 @@
                             <div>
                                 <div class="mode-title">I know Stake A</div>
                                 <div class="mode-desc">
-                                    I enter Stake A. You solve Stake B to equalize outcome.
+                                    I enter Stake A cash. You solve Stake B cash.
                                 </div>
                             </div>
                         </label>
@@ -97,7 +105,7 @@
                             <div>
                                 <div class="mode-title">I know Stake B</div>
                                 <div class="mode-desc">
-                                    I enter Stake B. You solve Stake A to equalize outcome.
+                                    I enter Stake B cash. You solve Stake A cash.
                                 </div>
                             </div>
                         </label>
@@ -107,19 +115,19 @@
                         <label class="mode-label">
                             <input type="radio" name="calcMode" value="targetEUR" id="modeTargetEUR" />
                             <div>
-                                <div class="mode-title">I want guaranteed EUR payout</div>
+                                <div class="mode-title">Target guaranteed payout in EUR</div>
                                 <div class="mode-desc">
-                                    I enter a Target EUR return. You solve both stakes.
+                                    I enter the EUR I want guaranteed. You solve both stakes.
                                 </div>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <!-- CALC FORM -->
+                <!-- FORM -->
                 <form id="calcForm" class="calc-form">
 
-                    <!-- ROW A (Bookmaker A) -->
+                    <!-- SIDE A -->
                     <div class="h-row">
                         <div class="field slim">
                             <label for="oddsA">Odds A</label>
@@ -131,13 +139,13 @@
                             <select id="currencyA">
                                 <option value="EUR">EUR</option>
                                 <option value="GBP">GBP</option>
-                                <option value="RON">RON</option>
+                                <option value="RON">RON 🇷🇴</option>
                                 <option value="AUD">AUD</option>
                             </select>
                         </div>
 
                         <div class="field slim">
-                            <label for="stakeA">Stake A</label>
+                            <label for="stakeA">Stake A cash in</label>
                             <input type="number" step="0.01" id="stakeA" placeholder="e.g. 100" />
                             <div class="tiny-hint-line">
                                 Used in "I know Stake A".
@@ -145,7 +153,7 @@
                         </div>
                     </div>
 
-                    <!-- ROW B (Bookmaker B) -->
+                    <!-- SIDE B -->
                     <div class="h-row">
                         <div class="field slim">
                             <label for="oddsB">Odds B</label>
@@ -157,13 +165,13 @@
                             <select id="currencyB">
                                 <option value="EUR">EUR</option>
                                 <option value="GBP">GBP</option>
-                                <option value="RON">RON</option>
+                                <option value="RON">RON 🇷🇴</option>
                                 <option value="AUD">AUD</option>
                             </select>
                         </div>
 
                         <div class="field slim">
-                            <label for="stakeB">Stake B</label>
+                            <label for="stakeB">Stake B cash in</label>
                             <input type="number" step="0.01" id="stakeB" placeholder="e.g. 80" />
                             <div class="tiny-hint-line">
                                 Used in "I know Stake B".
@@ -171,13 +179,13 @@
                         </div>
                     </div>
 
-                    <!-- ROW C (Target EUR payout) -->
+                    <!-- TARGET PAYOUT -->
                     <div class="h-row">
                         <div class="field slim">
-                            <label for="targetPayout">Target guaranteed payout in EUR</label>
+                            <label for="targetPayout">Guaranteed payout target (EUR)</label>
                             <input type="number" step="0.01" id="targetPayout" placeholder="e.g. 200" />
                             <div class="tiny-hint-line">
-                                Used in "I want guaranteed EUR payout".
+                                Used in "Target guaranteed payout in EUR".
                             </div>
                         </div>
                     </div>
@@ -189,101 +197,128 @@
 
                 <div id="calcError" class="error-msg hidden"></div>
 
-                <!-- RESULTS -->
+                <!-- ================= RESULTS ================= -->
                 <div id="calcResult" class="result-card hidden">
-                    <h3>Stake Plan</h3>
+                    <!-- 1. YOUR STAKES -->
+                    <h3>Your stakes (what to place)</h3>
 
-                    <div class="result-flex">
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">Stake A:</span>
-                                <span class="result-value" id="stakeAOut">-</span>
+                    <div class="stakes-block">
+                        <div class="stake-side">
+                            <div class="stake-side-header">
+                                <span class="side-label">Side A</span>
+                                <span class="side-odds" id="sideAOddsOut">@ ?</span>
                             </div>
-                            <div class="result-row">
-                                <span class="result-label">Stake B:</span>
-                                <span class="result-value" id="stakeBOut">-</span>
+
+                            <div class="stake-row">
+                                <span class="stake-label">Cash in:</span>
+                                <span class="stake-val" id="stakeACashOut">-</span>
+                            </div>
+
+                            <div class="stake-row">
+                                <span class="stake-label">Slip stake after fee:</span>
+                                <span class="stake-val" id="stakeAEffOut">-</span>
                             </div>
                         </div>
 
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">If A wins → EUR:</span>
-                                <span class="result-value" id="payoutAOut">-</span>
+                        <div class="stake-side">
+                            <div class="stake-side-header">
+                                <span class="side-label">Side B</span>
+                                <span class="side-odds" id="sideBOddsOut">@ ?</span>
                             </div>
-                            <div class="result-row">
-                                <span class="result-label">If B wins → EUR:</span>
-                                <span class="result-value" id="payoutBOut">-</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="divider"></div>
+                            <div class="stake-row">
+                                <span class="stake-label">Cash in:</span>
+                                <span class="stake-val" id="stakeBCashOut">-</span>
+                            </div>
 
-                    <div class="result-flex">
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">Exposure (EUR):</span>
-                                <span class="result-value" id="exposureOut">-</span>
-                            </div>
-                            <div class="result-row">
-                                <span class="result-label">Guaranteed return (EUR):</span>
-                                <span class="result-value" id="returnOut">-</span>
-                            </div>
-                        </div>
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">Profit (EUR):</span>
-                                <span class="result-value" id="profitOut">-</span>
-                            </div>
-                            <div class="result-row">
-                                <span class="result-label">ROI %:</span>
-                                <span class="result-value" id="roiOut">-</span>
+                            <div class="stake-row">
+                                <span class="stake-label">Slip stake after fee:</span>
+                                <span class="stake-val" id="stakeBEffOut">-</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="divider"></div>
 
-                    <div class="result-row">
-                        <span class="result-label">Arbitrage Check:</span>
-                        <span class="result-value" id="arbOut">-</span>
+                    <!-- 2. OUTCOME SCENARIOS -->
+                    <h4 class="subhead">If each side wins (after country taxes)</h4>
+
+                    <div class="outcomes-grid">
+                        <div class="outcome-card">
+                            <div class="outcome-head">
+                                <span class="outcome-title">If Side A wins</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Cash you collect from A:</span>
+                                <span class="out-val" id="collectAOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Total cost you paid in:</span>
+                                <span class="out-val" id="totalCostAOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Profit after tax (EUR):</span>
+                                <span class="out-val greenish" id="profitAEurOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">ROI after tax:</span>
+                                <span class="out-val" id="roiAOut">-</span>
+                            </div>
+                        </div>
+
+                        <div class="outcome-card">
+                            <div class="outcome-head">
+                                <span class="outcome-title">If Side B wins</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Cash you collect from B:</span>
+                                <span class="out-val" id="collectBOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Total cost you paid in:</span>
+                                <span class="out-val" id="totalCostBOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">Profit after tax (EUR):</span>
+                                <span class="out-val greenish" id="profitBEurOut">-</span>
+                            </div>
+
+                            <div class="outcome-row">
+                                <span class="out-label">ROI after tax:</span>
+                                <span class="out-val" id="roiBOut">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- 3. GUARANTEED FLOOR -->
+                    <div class="guarantee-block">
+                        <div class="guarantee-row">
+                            <span class="guarantee-label">Guaranteed profit floor (EUR):</span>
+                            <span class="guarantee-val greenish" id="guaranteedProfitOut">-</span>
+                        </div>
+                        <div class="guarantee-row">
+                            <span class="guarantee-label">Guaranteed ROI floor:</span>
+                            <span class="guarantee-val" id="guaranteedRoiOut">-</span>
+                        </div>
+                        <div class="guarantee-row">
+                            <span class="guarantee-label">Arbitrage check:</span>
+                            <span class="guarantee-val" id="arbOut">-</span>
+                        </div>
                     </div>
 
                     <div class="tiny-hint">
-                        "Arbitrage Check" uses (1/oddsA + 1/oddsB). If &lt; 1 it's a surebet.
-                        All EUR numbers below are converted using today's FX snapshot.
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <h4 class="aftertax-title">After Romanian retail tax model (RON bets)</h4>
-
-                    <div class="result-flex">
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">Exposure after tax (EUR):</span>
-                                <span class="result-value" id="expTaxOut">-</span>
-                            </div>
-                            <div class="result-row">
-                                <span class="result-label">Guaranteed return after tax (EUR):</span>
-                                <span class="result-value" id="retTaxOut">-</span>
-                            </div>
-                        </div>
-                        <div class="result-col">
-                            <div class="result-row">
-                                <span class="result-label">Profit after tax (EUR):</span>
-                                <span class="result-value" id="profTaxOut">-</span>
-                            </div>
-                            <div class="result-row">
-                                <span class="result-label">ROI after tax %:</span>
-                                <span class="result-value" id="roiTaxOut">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tiny-hint">
-                        Romania retail assumptions: 5% fee on stake cash-in and 4% withholding on payout,
-                        applied only to tickets in RON. Other currencies are left untouched.
+                        Romania retail logic: RON bets lose 5% upfront and, if that side wins, payout is taxed 4%.
+                        Non-RON bets have no Romania fee/tax.
+                        Profit/ROI shown in EUR using the current FX snapshot.
                     </div>
                 </div>
             </section>
@@ -291,8 +326,7 @@
 
         <footer class="footer-card glass-card">
             <div class="foot-left">
-                <strong>Local operator use only.</strong>
-                One human. One machine.
+                <strong>Local operator use only.</strong> One human. One machine.
             </div>
             <div class="foot-right">
                 Snap FX → Size bets → Log EUR profit → Settle later.
@@ -306,7 +340,7 @@
          ****************************************************/
         let fxRates = null;
         let fxTimestamp = null;
-        const RATES_STORAGE_KEY = "surebet_fx_snapshot_v1";
+        const RATES_STORAGE_KEY = "surebet_fx_snapshot_v2";
 
         const $ = (sel) => document.querySelector(sel);
         function setText(sel, txt) {
@@ -317,7 +351,7 @@
         function hide(el) { el.classList.add("hidden"); }
 
         /****************************************************
-         * STORAGE / LOCK
+         * LOCAL STORAGE / 24h LOCK
          ****************************************************/
         function loadRatesFromStorage() {
             try {
@@ -336,10 +370,7 @@
 
         function saveRatesToStorage() {
             if (!fxRates || !fxTimestamp) return;
-            const payload = {
-                rates: fxRates,
-                timestamp: fxTimestamp,
-            };
+            const payload = { rates: fxRates, timestamp: fxTimestamp };
             localStorage.setItem(RATES_STORAGE_KEY, JSON.stringify(payload));
         }
 
@@ -367,7 +398,7 @@
         }
 
         /****************************************************
-         * FETCH RATES from Frankfurter
+         * FETCH RATES
          ****************************************************/
         async function fetchRates() {
             const btn = $("#fetchRatesBtn");
@@ -386,16 +417,15 @@
             status.classList.remove("good", "bad");
 
             try {
+                // Frankfurter API
                 const url = "https://api.frankfurter.dev/v1/latest?symbols=GBP,RON,AUD";
                 const res = await fetch(url);
                 if (!res.ok) {
                     throw new Error("HTTP " + res.status + " " + res.statusText);
                 }
-
                 const data = await res.json();
-                console.log("DEBUG raw API response:", data);
-
                 const rawRates = data.rates || {};
+
                 const newRates = {
                     "EUR": 1.0,
                     "GBP": Number(rawRates["GBP"] || 0),
@@ -403,23 +433,18 @@
                     "AUD": Number(rawRates["AUD"] || 0),
                 };
 
-                console.log("DEBUG normalized rates:", newRates);
-
                 fxRates = newRates;
                 fxTimestamp = Date.now();
                 saveRatesToStorage();
                 renderFxSnapshot();
 
                 const missing = [];
-                for (const c of ["EUR", "GBP", "RON", "AUD"]) {
-                    if (!newRates[c] || newRates[c] === 0) {
-                        missing.push(c);
-                    }
-                }
+                ["EUR", "GBP", "RON", "AUD"].forEach(c => {
+                    if (!newRates[c] || newRates[c] === 0) missing.push(c);
+                });
 
                 if (missing.length > 0) {
-                    status.textContent =
-                        "Partial rates (missing " + missing.join(", ") + ").";
+                    status.textContent = "Partial rates (missing " + missing.join(", ") + ").";
                     status.classList.remove("good");
                     status.classList.add("bad");
                 } else {
@@ -427,6 +452,7 @@
                     status.classList.remove("bad");
                     status.classList.add("good");
                 }
+
             } catch (err) {
                 console.error("Rate fetch failed:", err);
                 status.textContent = "ERROR. Use manual override.";
@@ -442,7 +468,7 @@
         }
 
         /****************************************************
-         * MANUAL RATES
+         * MANUAL RATES SAVE
          ****************************************************/
         function saveManualRates() {
             const gbpVal = parseFloat($("#manualGBP").value);
@@ -475,7 +501,7 @@
         }
 
         /****************************************************
-         * RENDER FX SNAPSHOT (compact)
+         * RENDER FX SNAPSHOT
          ****************************************************/
         function renderFxSnapshot() {
             const tsEl = $("#fxTimestamp");
@@ -490,39 +516,45 @@
             const tsStr = new Date(fxTimestamp).toLocaleString();
             tsEl.textContent = tsStr + " (EUR base)";
 
-            const safe = (val) =>
-                val && Number(val) > 0 ? Number(val).toFixed(4) : "—";
+            function safe(val) {
+                return val && Number(val) > 0 ? Number(val).toFixed(4) : "—";
+            }
 
             tbl.innerHTML = `
-      <div class="fx-row fx-row-inline">
-        <div class="fx-cur">EUR</div>
-        <div class="fx-val">1.0000</div>
-      </div>
-      <div class="fx-row fx-row-inline">
-        <div class="fx-cur">GBP</div>
-        <div class="fx-val">${safe(fxRates.GBP)}</div>
-      </div>
-      <div class="fx-row fx-row-inline">
-        <div class="fx-cur">RON</div>
-        <div class="fx-val">${safe(fxRates.RON)}</div>
-      </div>
-      <div class="fx-row fx-row-inline">
-        <div class="fx-cur">AUD</div>
-        <div class="fx-val">${safe(fxRates.AUD)}</div>
-      </div>
-    `;
+                <div class="fx-row fx-row-inline">
+                    <div class="fx-cur">EUR</div>
+                    <div class="fx-val">1.0000</div>
+                </div>
+                <div class="fx-row fx-row-inline">
+                    <div class="fx-cur">GBP</div>
+                    <div class="fx-val">${safe(fxRates.GBP)}</div>
+                </div>
+                <div class="fx-row fx-row-inline">
+                    <div class="fx-cur">RON</div>
+                    <div class="fx-val">${safe(fxRates.RON)}</div>
+                </div>
+                <div class="fx-row fx-row-inline">
+                    <div class="fx-cur">AUD</div>
+                    <div class="fx-val">${safe(fxRates.AUD)}</div>
+                </div>
+            `;
         }
 
         /****************************************************
          * FX HELPERS
          ****************************************************/
         function amountToEUR(amount, currency) {
-            if (!fxRates) throw new Error("No FX rates loaded");
-            if (!fxRates[currency]) throw new Error("Unsupported currency " + currency);
+            if (!fxRates || !fxRates[currency]) {
+                throw new Error("Unsupported currency " + currency + " or FX not loaded.");
+            }
+            // fxRates[currency] is "1 EUR = fxRates[currency] CURRENCY"
+            // so CURRENCY -> EUR is amount / rate
             return amount / fxRates[currency];
         }
         function amountFromEUR(amountEUR, currency) {
-            if (!fxRates[currency]) throw new Error("Unsupported currency " + currency);
+            if (!fxRates || !fxRates[currency]) {
+                throw new Error("Unsupported currency " + currency + " or FX not loaded.");
+            }
             return amountEUR * fxRates[currency];
         }
 
@@ -532,339 +564,280 @@
         function arbAnalysis(oddsA, oddsB) {
             const invSum = (1 / oddsA) + (1 / oddsB);
             const hasArb = invSum < 1;
-            const theReturnFactor = 1 / invSum;
-            const arbPct = (theReturnFactor - 1) * 100;
+            const retFactor = 1 / invSum;
+            const arbPct = (retFactor - 1) * 100;
             return { hasArb, arbPct };
         }
 
         /****************************************************
-         * MODE 1: I KNOW STAKE A
+         * ROMANIA TAX HELPERS
          ****************************************************/
-        function solveFromStakeA(oddsA, oddsB, stakeA_native, curA, curB) {
-            const payoutA_native = stakeA_native * oddsA;
+        function isRomania(currency) {
+            return currency === "RON";
+        }
+
+        // cash -> effective stake on slip (after 5% fee if Romania)
+        function effectiveStakeFromCash(stakeCash, currency) {
+            if (isRomania(currency)) {
+                return stakeCash * (1 - 0.05); // minus 5% upfront fee
+            }
+            return stakeCash;
+        }
+
+        // effective stake on slip -> cash needed
+        function cashFromEffectiveStake(effStake, currency) {
+            if (isRomania(currency)) {
+                return effStake / (1 - 0.05); // reverse the 5%
+            }
+            return effStake;
+        }
+
+        // given final winner side, what do we actually collect, after country tax?
+        function computeSideFinancials(odds, stakeCash, currency) {
+            const effStake = effectiveStakeFromCash(stakeCash, currency);
+
+            // gross payout if this side wins (before any payout withholding)
+            const grossPayout = effStake * odds;
+
+            // Romania takes 4% from payout when you cash a winning ticket
+            const netPayout = isRomania(currency)
+                ? grossPayout * (1 - 0.04)
+                : grossPayout;
+
+            return {
+                currency,
+                stakeCash,
+                effStake,
+                grossPayout,
+                netPayout
+            };
+        }
+
+        /****************************************************
+         * SIZING LOGIC
+         *
+         * Goal: balance the guaranteed payout BEFORE country tax,
+         * using the stake that actually goes on the slip (effective stake).
+         *
+         * Steps:
+         *   - known side gives us effStakeKnown
+         *   - we compute payoutKnown_native = effStakeKnown * oddsKnown
+         *   - convert to EUR
+         *   - replicate that EUR payout for the other side
+         *   - solve for effStakeOther
+         *   - backsolve to stakeCashOther
+         ****************************************************/
+
+        function solveFromStakeA(oddsA, oddsB, stakeA_cash, curA, curB) {
+            // effective stake actually placed at A
+            const effA = effectiveStakeFromCash(stakeA_cash, curA);
+
+            // gross payout native for A (before payout tax)
+            const payoutA_native = effA * oddsA;
+
+            // convert that payout into EUR
             const payoutA_EUR = amountToEUR(payoutA_native, curA);
 
-            const payoutA_in_B_native = amountFromEUR(payoutA_EUR, curB);
-            const stakeB_native = payoutA_in_B_native / oddsB;
+            // how big should effective stake B be to match that EUR payout?
+            // payoutB_native = effB * oddsB
+            // payoutB_EUR = toEUR(payoutB_native, curB) must equal payoutA_EUR
+            // => payoutB_native = fromEUR(payoutA_EUR, curB)
+            const payoutB_native_needed = amountFromEUR(payoutA_EUR, curB);
 
-            return summarizeStakes(
-                oddsA,
-                oddsB,
-                stakeA_native,
-                stakeB_native,
-                curA,
-                curB
-            );
+            const effB = payoutB_native_needed / oddsB;
+
+            // now get stakeB_cash needed, reversing Romania 5% if needed
+            const stakeB_cash = cashFromEffectiveStake(effB, curB);
+
+            return {
+                stakeA_cash,
+                stakeB_cash
+            };
         }
 
-        /****************************************************
-         * MODE 2: I KNOW STAKE B
-         ****************************************************/
-        function solveFromStakeB(oddsA, oddsB, stakeB_native, curA, curB) {
-            const payoutB_native = stakeB_native * oddsB;
+        function solveFromStakeB(oddsA, oddsB, stakeB_cash, curA, curB) {
+            const effB = effectiveStakeFromCash(stakeB_cash, curB);
+            const payoutB_native = effB * oddsB;
             const payoutB_EUR = amountToEUR(payoutB_native, curB);
 
-            const payoutB_in_A_native = amountFromEUR(payoutB_EUR, curA);
-            const stakeA_native = payoutB_in_A_native / oddsA;
+            const payoutA_native_needed = amountFromEUR(payoutB_EUR, curA);
+            const effA = payoutA_native_needed / oddsA;
+            const stakeA_cash = cashFromEffectiveStake(effA, curA);
 
-            return summarizeStakes(
-                oddsA,
-                oddsB,
-                stakeA_native,
-                stakeB_native,
-                curA,
-                curB
-            );
+            return {
+                stakeA_cash,
+                stakeB_cash
+            };
         }
 
-        /****************************************************
-         * MODE 3: TARGET EUR PAYOUT
-         ****************************************************/
         function solveFromTargetEUR(oddsA, oddsB, targetPayoutEUR, curA, curB) {
-            if (!fxRates || !fxRates[curA] || !fxRates[curB]) {
-                throw new Error("FX not ready or currency unsupported.");
-            }
+            // targetPayoutEUR is the gross payout BEFORE payout tax,
+            // guaranteed on both sides.
+            // For side A:
+            // payoutA_native = fromEUR(targetPayoutEUR, curA)
+            // payoutA_native = effA * oddsA  => effA = payoutA_native / oddsA
+            const payoutA_native_target = amountFromEUR(targetPayoutEUR, curA);
+            const effA = payoutA_native_target / oddsA;
+            const stakeA_cash = cashFromEffectiveStake(effA, curA);
 
-            const stakeA_native = (targetPayoutEUR * fxRates[curA]) / oddsA;
-            const stakeB_native = (targetPayoutEUR * fxRates[curB]) / oddsB;
+            // same for B
+            const payoutB_native_target = amountFromEUR(targetPayoutEUR, curB);
+            const effB = payoutB_native_target / oddsB;
+            const stakeB_cash = cashFromEffectiveStake(effB, curB);
 
-            return summarizeStakes(
-                oddsA,
-                oddsB,
-                stakeA_native,
-                stakeB_native,
-                curA,
-                curB,
-                targetPayoutEUR // guaranteed EUR known already
-            );
+            return {
+                stakeA_cash,
+                stakeB_cash
+            };
         }
 
         /****************************************************
-         * ROMANIA RETAIL ADJUSTMENT (RON only)
-         * - 5% fee on stake cash-in
-         * - 4% withholding on payout
-         * Only applies if currency === "RON"
+         * FINAL SUMMARY / OUTCOMES
          ****************************************************/
-        function computeRomaniaAfterTax(
+        function summarizeOutcomes(
             oddsA,
             oddsB,
-            stakeA_native,
-            stakeB_native,
+            stakeA_cash,
+            stakeB_cash,
             curA,
             curB
         ) {
-            // Constants for Romanian retail shop model
-            const tStake = 0.05; // 5% fee when you hand cash to place the bet
-            const tWin = 0.04;   // 4% tax on winning payout (low bracket)
+            // per-side tax model
+            const sideA = computeSideFinancials(oddsA, stakeA_cash, curA);
+            const sideB = computeSideFinancials(oddsB, stakeB_cash, curB);
 
-            // helper per side
-            function sideAfterTax(stakeEff, odds, cur) {
-                const isRON = (cur === "RON");
+            // total cash invested across both tickets, in EUR
+            const totalCostEUR =
+                amountToEUR(sideA.stakeCash, curA) +
+                amountToEUR(sideB.stakeCash, curB);
 
-                // stakeEff here is the "effective stake" that actually goes on the slip.
-                // If it's RON retail, the bettor actually handed in MORE cash,
-                // because house kept 5% and placed the rest.
-                const cashIn = isRON ? (stakeEff / (1 - tStake)) : stakeEff;
+            // Scenario A wins:
+            // collect sideA.netPayout (in curA), sideB is zero
+            const collectA_EUR = amountToEUR(sideA.netPayout, curA);
+            const profitIfA_EUR = collectA_EUR - totalCostEUR;
+            const roiIfA = profitIfA_EUR / totalCostEUR;
 
-                const grossPayout = stakeEff * odds;
-                const netPayout = isRON ? (grossPayout * (1 - tWin)) : grossPayout;
+            // Scenario B wins:
+            const collectB_EUR = amountToEUR(sideB.netPayout, curB);
+            const profitIfB_EUR = collectB_EUR - totalCostEUR;
+            const roiIfB = profitIfB_EUR / totalCostEUR;
 
-                return { cashIn, netPayout };
-            }
-
-            const sideA = sideAfterTax(stakeA_native, oddsA, curA);
-            const sideB = sideAfterTax(stakeB_native, oddsB, curB);
-
-            // Exposure after tax = total real cash handed over across both sides, in EUR
-            const exposureAfterTaxEUR =
-                amountToEUR(sideA.cashIn, curA) +
-                amountToEUR(sideB.cashIn, curB);
-
-            // If A wins, only A pays you out (after tax); B is lost.
-            const payoutIfA_afterTax_EUR = amountToEUR(sideA.netPayout, curA);
-            // If B wins:
-            const payoutIfB_afterTax_EUR = amountToEUR(sideB.netPayout, curB);
-
-            const guaranteedReturnAfterTaxEUR = Math.min(
-                payoutIfA_afterTax_EUR,
-                payoutIfB_afterTax_EUR
-            );
-
-            const profitAfterTaxEUR =
-                guaranteedReturnAfterTaxEUR - exposureAfterTaxEUR;
-
-            const roiAfterTaxPct =
-                (profitAfterTaxEUR / exposureAfterTaxEUR) * 100;
+            // guaranteed floor
+            const guaranteedProfitEUR = Math.min(profitIfA_EUR, profitIfB_EUR);
+            const guaranteedRoiPct = Math.min(roiIfA, roiIfB) * 100;
 
             return {
-                exposureAfterTaxEUR,
-                guaranteedReturnAfterTaxEUR,
-                profitAfterTaxEUR,
-                roiAfterTaxPct,
+                sideA,
+                sideB,
+                totalCostEUR,
+                collectA_EUR,
+                collectB_EUR,
+                profitIfA_EUR,
+                profitIfB_EUR,
+                roiIfA_pct: roiIfA * 100,
+                roiIfB_pct: roiIfB * 100,
+                guaranteedProfitEUR,
+                guaranteedRoiPct
             };
         }
 
         /****************************************************
-         * COMMON SUMMARY (pre-tax / base model)
+         * RENDER RESULTS
          ****************************************************/
-        function summarizeStakes(
+        function renderResults(
             oddsA,
             oddsB,
-            stakeA_native,
-            stakeB_native,
             curA,
             curB,
-            overrideGuaranteedEUR // optional
+            stakeA_cash,
+            stakeB_cash,
+            summary,
+            arbInfo
         ) {
-            // native payouts
-            const payoutA_native = stakeA_native * oddsA;
-            const payoutB_native = stakeB_native * oddsB;
-
-            // EUR payouts
-            const payoutA_EUR = amountToEUR(payoutA_native, curA);
-            const payoutB_EUR = amountToEUR(payoutB_native, curB);
-
-            // stakes in EUR (exposure)
-            const stakeA_EUR = amountToEUR(stakeA_native, curA);
-            const stakeB_EUR = amountToEUR(stakeB_native, curB);
-            const exposureEUR = stakeA_EUR + stakeB_EUR;
-
-            // guaranteed EUR return:
-            const guaranteedReturnEUR =
-                overrideGuaranteedEUR !== undefined
-                    ? overrideGuaranteedEUR
-                    : Math.min(payoutA_EUR, payoutB_EUR);
-
-            const profitEUR = guaranteedReturnEUR - exposureEUR;
-            const roiPct = (profitEUR / exposureEUR) * 100;
-
-            // Also compute after-tax (Romania model)
-            const roAfterTax = computeRomaniaAfterTax(
-                oddsA,
-                oddsB,
-                stakeA_native,
-                stakeB_native,
-                curA,
-                curB
-            );
-
-            return {
-                stakeA_native,
-                stakeB_native,
-                payoutA_EUR,
-                payoutB_EUR,
-                exposureEUR,
-                guaranteedReturnEUR,
-                profitEUR,
-                roiPct,
-                roExposureEUR: roAfterTax.exposureAfterTaxEUR,
-                roGuaranteedReturnEUR: roAfterTax.guaranteedReturnAfterTaxEUR,
-                roProfitEUR: roAfterTax.profitAfterTaxEUR,
-                roRoiPct: roAfterTax.roiAfterTaxPct
-            };
-        }
-
-        /****************************************************
-         * CALCULATE HANDLER
-         ****************************************************/
-        function onCalculate(e) {
-            e.preventDefault();
-
-            const errBox = $("#calcError");
-            const resultBox = $("#calcResult");
-            hide(errBox);
-
-            // Inputs
-            const oddsA = parseFloat($("#oddsA").value);
-            const oddsB = parseFloat($("#oddsB").value);
-
-            const curA = $("#currencyA").value;
-            const curB = $("#currencyB").value;
-
-            const stakeAVal = parseFloat($("#stakeA").value); // may be NaN if blank
-            const stakeBVal = parseFloat($("#stakeB").value); // may be NaN if blank
-
-            const targetPayoutVal = parseFloat($("#targetPayout").value); // may be NaN if blank
-
-            const mode = $("#modeStakeA").checked
-                ? "stakeA"
-                : $("#modeStakeB").checked
-                    ? "stakeB"
-                    : "targetEUR";
-
-            // basic validation
-            if (!fxRates) {
-                errBox.textContent =
-                    "No FX snapshot loaded. Fetch or enter manual rates first.";
-                show(errBox);
-                hide(resultBox);
-                return;
-            }
-            if (!(oddsA > 1 && oddsB > 1)) {
-                errBox.textContent = "Odds must be > 1.00";
-                show(errBox);
-                hide(resultBox);
-                return;
-            }
-
-            let calcRes;
-            try {
-                if (mode === "stakeA") {
-                    if (!(stakeAVal > 0)) {
-                        throw new Error("Stake A must be > 0 in 'I know Stake A' mode.");
-                    }
-                    calcRes = solveFromStakeA(
-                        oddsA,
-                        oddsB,
-                        stakeAVal,
-                        curA,
-                        curB
-                    );
-                } else if (mode === "stakeB") {
-                    if (!(stakeBVal > 0)) {
-                        throw new Error("Stake B must be > 0 in 'I know Stake B' mode.");
-                    }
-                    calcRes = solveFromStakeB(
-                        oddsA,
-                        oddsB,
-                        stakeBVal,
-                        curA,
-                        curB
-                    );
-                } else {
-                    if (!(targetPayoutVal > 0)) {
-                        throw new Error(
-                            "Target EUR must be > 0 in 'guaranteed EUR payout' mode."
-                        );
-                    }
-                    calcRes = solveFromTargetEUR(
-                        oddsA,
-                        oddsB,
-                        targetPayoutVal,
-                        curA,
-                        curB
-                    );
-                }
-            } catch (err) {
-                errBox.textContent = err.message || String(err);
-                show(errBox);
-                hide(resultBox);
-                return;
-            }
-
-            // Arbitrage check
-            const { hasArb, arbPct } = arbAnalysis(oddsA, oddsB);
-
-            // ---------- Render base (pre-tax) ----------
+            // --- Your stakes ---
+            // Side A
+            setText("#sideAOddsOut", `@ ${oddsA.toFixed(2)}`);
             setText(
-                "#stakeAOut",
-                `${calcRes.stakeA_native.toFixed(2)} ${curA} @ ${oddsA.toFixed(2)}`
+                "#stakeACashOut",
+                `${stakeA_cash.toFixed(2)} ${curA}`
             );
             setText(
-                "#stakeBOut",
-                `${calcRes.stakeB_native.toFixed(2)} ${curB} @ ${oddsB.toFixed(2)}`
+                "#stakeAEffOut",
+                `${summary.sideA.effStake.toFixed(2)} ${curA}`
+                + (isRomania(curA) ? " (after 5%)" : "")
             );
 
-            setText("#payoutAOut", `${calcRes.payoutA_EUR.toFixed(2)} EUR`);
-            setText("#payoutBOut", `${calcRes.payoutB_EUR.toFixed(2)} EUR`);
-
-            setText("#exposureOut", `${calcRes.exposureEUR.toFixed(2)} EUR`);
+            // Side B
+            setText("#sideBOddsOut", `@ ${oddsB.toFixed(2)}`);
             setText(
-                "#returnOut",
-                `${calcRes.guaranteedReturnEUR.toFixed(2)} EUR`
+                "#stakeBCashOut",
+                `${stakeB_cash.toFixed(2)} ${curB}`
             );
-            setText("#profitOut", `${calcRes.profitEUR.toFixed(2)} EUR`);
-            setText("#roiOut", `${calcRes.roiPct.toFixed(2)} %`);
+            setText(
+                "#stakeBEffOut",
+                `${summary.sideB.effStake.toFixed(2)} ${curB}`
+                + (isRomania(curB) ? " (after 5%)" : "")
+            );
 
-            if (hasArb) {
-                setText("#arbOut", `ARB ✅  +${arbPct.toFixed(2)}%`);
+            // --- Outcome A wins ---
+            // Cash you collect from A (native currency A, after 4% if Romania)
+            setText(
+                "#collectAOut",
+                `${summary.sideA.netPayout.toFixed(2)} ${curA} (after tax)`
+            );
+            // total cost in EUR is same for both outcomes
+            setText(
+                "#totalCostAOut",
+                `${summary.totalCostEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#profitAEurOut",
+                `${summary.profitIfA_EUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#roiAOut",
+                `${summary.roiIfA_pct.toFixed(2)} %`
+            );
+
+            // --- Outcome B wins ---
+            setText(
+                "#collectBOut",
+                `${summary.sideB.netPayout.toFixed(2)} ${curB} (after tax)`
+            );
+            setText(
+                "#totalCostBOut",
+                `${summary.totalCostEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#profitBEurOut",
+                `${summary.profitIfB_EUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#roiBOut",
+                `${summary.roiIfB_pct.toFixed(2)} %`
+            );
+
+            // --- Guaranteed floor ---
+            setText(
+                "#guaranteedProfitOut",
+                `${summary.guaranteedProfitEUR.toFixed(2)} EUR`
+            );
+            setText(
+                "#guaranteedRoiOut",
+                `${summary.guaranteedRoiPct.toFixed(2)} %`
+            );
+
+            if (arbInfo.hasArb) {
+                setText("#arbOut", `ARB ✅  +${arbInfo.arbPct.toFixed(2)}%`);
             } else {
-                setText("#arbOut", `NO ARB ❌  ${arbPct.toFixed(2)}%`);
+                setText("#arbOut", `NO ARB ❌  ${arbInfo.arbPct.toFixed(2)}%`);
             }
 
-            // ---------- Render Romania after-tax block ----------
-            setText(
-                "#expTaxOut",
-                `${calcRes.roExposureEUR.toFixed(2)} EUR`
-            );
-            setText(
-                "#retTaxOut",
-                `${calcRes.roGuaranteedReturnEUR.toFixed(2)} EUR`
-            );
-            setText(
-                "#profTaxOut",
-                `${calcRes.roProfitEUR.toFixed(2)} EUR`
-            );
-            setText(
-                "#roiTaxOut",
-                `${calcRes.roRoiPct.toFixed(2)} %`
-            );
-
-            show(resultBox);
+            show($("#calcResult"));
         }
 
         /****************************************************
-         * MODE UI (radio highlight)
+         * MODE UI HIGHLIGHT
          ****************************************************/
         function refreshModeUI() {
             const stakeAOption = document.querySelector('.mode-option:nth-of-type(1)');
@@ -887,6 +860,131 @@
         }
 
         /****************************************************
+         * CALCULATE HANDLER
+         ****************************************************/
+        function onCalculate(e) {
+            e.preventDefault();
+
+            const errBox = $("#calcError");
+            const resultBox = $("#calcResult");
+            hide(errBox);
+
+            // read inputs
+            const oddsA = parseFloat($("#oddsA").value);
+            const oddsB = parseFloat($("#oddsB").value);
+
+            const curA = $("#currencyA").value;
+            const curB = $("#currencyB").value;
+
+            const stakeAVal = parseFloat($("#stakeA").value);
+            const stakeBVal = parseFloat($("#stakeB").value);
+            const targetPayoutVal = parseFloat($("#targetPayout").value);
+
+            const mode = $("#modeStakeA").checked
+                ? "stakeA"
+                : $("#modeStakeB").checked
+                    ? "stakeB"
+                    : "targetEUR";
+
+            // validation
+            if (!fxRates) {
+                errBox.textContent = "No FX snapshot loaded. Fetch or enter manual rates first.";
+                show(errBox);
+                hide(resultBox);
+                return;
+            }
+            if (!(oddsA > 1 && oddsB > 1)) {
+                errBox.textContent = "Odds must be > 1.00";
+                show(errBox);
+                hide(resultBox);
+                return;
+            }
+
+            let stakeA_cash, stakeB_cash;
+            try {
+                if (mode === "stakeA") {
+                    if (!(stakeAVal > 0)) {
+                        throw new Error("Stake A must be > 0 in 'I know Stake A' mode.");
+                    }
+                    const solved = solveFromStakeA(
+                        oddsA,
+                        oddsB,
+                        stakeAVal,
+                        curA,
+                        curB
+                    );
+                    stakeA_cash = solved.stakeA_cash;
+                    stakeB_cash = solved.stakeB_cash;
+
+                } else if (mode === "stakeB") {
+                    if (!(stakeBVal > 0)) {
+                        throw new Error("Stake B must be > 0 in 'I know Stake B' mode.");
+                    }
+                    const solved = solveFromStakeB(
+                        oddsA,
+                        oddsB,
+                        stakeBVal,
+                        curA,
+                        curB
+                    );
+                    stakeA_cash = solved.stakeA_cash;
+                    stakeB_cash = solved.stakeB_cash;
+
+                } else {
+                    if (!(targetPayoutVal > 0)) {
+                        throw new Error("Target EUR must be > 0 in 'Target guaranteed payout in EUR' mode.");
+                    }
+                    const solved = solveFromTargetEUR(
+                        oddsA,
+                        oddsB,
+                        targetPayoutVal,
+                        curA,
+                        curB
+                    );
+                    stakeA_cash = solved.stakeA_cash;
+                    stakeB_cash = solved.stakeB_cash;
+                }
+            } catch (err) {
+                errBox.textContent = err.message || String(err);
+                show(errBox);
+                hide(resultBox);
+                return;
+            }
+
+            // Now build full summary with per-country tax logic
+            let summary;
+            try {
+                summary = summarizeOutcomes(
+                    oddsA,
+                    oddsB,
+                    stakeA_cash,
+                    stakeB_cash,
+                    curA,
+                    curB
+                );
+            } catch (err) {
+                errBox.textContent = err.message || String(err);
+                show(errBox);
+                hide(resultBox);
+                return;
+            }
+
+            // Arbitrage check (pure odds math, classic surebet test)
+            const arbInfo = arbAnalysis(oddsA, oddsB);
+
+            renderResults(
+                oddsA,
+                oddsB,
+                curA,
+                curB,
+                stakeA_cash,
+                stakeB_cash,
+                summary,
+                arbInfo
+            );
+        }
+
+        /****************************************************
          * INIT
          ****************************************************/
         function init() {
@@ -898,7 +996,7 @@
                 manualBtn.addEventListener("click", saveManualRates);
             }
 
-            // radio visual sync for 3 modes
+            // mode highlight visuals
             $("#modeStakeA").addEventListener("change", refreshModeUI);
             $("#modeStakeB").addEventListener("change", refreshModeUI);
             $("#modeTargetEUR").addEventListener("change", refreshModeUI);
@@ -912,5 +1010,4 @@
         document.addEventListener("DOMContentLoaded", init);
     </script>
 </body>
-
 </html>
